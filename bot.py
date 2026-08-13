@@ -30,7 +30,7 @@ def responder_usuario(message):
     texto_usuario = message.text
     try:
         respuesta = client.models.generate_content(
-            model='gemini-2.5-flash',
+            model='gemini-1.5-flash',
             contents=f"{INSTRUCCIONES_SISTEMA}\n\nUsuario dice: {texto_usuario}"
         )
         bot.reply_to(message, respuesta.text)

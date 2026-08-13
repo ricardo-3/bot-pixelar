@@ -4,6 +4,7 @@ from http.server import HTTPServer, BaseHTTPRequestHandler
 from google import genai
 import telebot
 
+# Servidor web dummy para que Render no tire error de puerto
 class SimpleHandler(BaseHTTPRequestHandler):
     def do_GET(self):
         self.send_response(200)
@@ -17,23 +18,30 @@ def run_server():
 
 threading.Thread(target=run_server, daemon=True).start()
 
+# Configuración de Tokens
 TELEGRAM_TOKEN = os.environ.get("TELEGRAM_TOKEN")
 GEMINI_API_KEY = os.environ.get("GEMINI_API_KEY")
 
 client = genai.Client(api_key=GEMINI_API_KEY)
 bot = telebot.TeleBot(TELEGRAM_TOKEN)
 
-INSTRUCCIONES_SISTEMA = "Eres Pixelar, un bot de diseño gráfico e interfaz creativo, experto y completamente libre de estereotipos o machismo."
+# Instrucciones de rol para tu Asistente de Estudio de la TUDD
+INSTRUCCIONES_SISTEMA = (
+    "Eres Pixelar, un asistente de estudio experto en diseño gráfico digital e interfaces (TUDD). "
+    "Ayudas al usuario a llevar el seguimiento de sus clases, entregas y cronograma, "
+    "explicando conceptos de usabilidad, heurísticas de Nielsen, Gestalt y affordances de forma clara, "
+    "creativa y completamente libre de estereotipos o machismo."
+)
 
 @bot.message_handler(func=lambda message: True)
 def responder_usuario(message):
     texto_usuario = message.text
     try:
-        respuesta = client.models.generate_content(
-            model='gemini-2.0-flash',  # <--- MODELO ACTUALIZADO AQUÍ
+        response = client.models.generate_content(
+            model='gemini-3.6-flash',  # <--- Modelo oficial actualizado
             contents=f"{INSTRUCCIONES_SISTEMA}\n\nUsuario dice: {texto_usuario}"
         )
-        bot.reply_to(message, respuesta.text)
+        bot.reply_to(message, response.text)
     except Exception as e:
         bot.reply_to(message, f"Ups, Pixelar tuvo un cortocircuito: {str(e)}")
 

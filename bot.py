@@ -1,14 +1,32 @@
 import os
-import telebot
+import threading
+from http.server import HTTPServer, BaseHTTPRequestHandler
 from google import genai
+import telebot
 
+# Servidor web falso para que Render no cierre el Web Service gratuito por falta de puertos
+class SimpleHandler(BaseHTTPRequestHandler):
+    def do_GET(self):
+        self.send_response(200)
+        self.end_headers()
+        self.wfile.write(b"Pixelar bot is alive!")
+
+def run_server():
+    port = int(os.environ.get("PORT", 10000))
+    server = HTTPServer(("0.0.0.0", port), SimpleHandler)
+    server.serve_forever()
+
+# Arrancar el servidor web en segundo plano
+threading.Thread(target=run_server, daemon=True).start()
+
+# Configuración del Bot de Telegram y Gemini
 TELEGRAM_TOKEN = os.environ.get("TELEGRAM_TOKEN")
 GEMINI_API_KEY = os.environ.get("GEMINI_API_KEY")
 
 client = genai.Client(api_key=GEMINI_API_KEY)
 bot = telebot.TeleBot(TELEGRAM_TOKEN)
 
-INSTRUCCIONES_SISTEMA = "Eres Pixelar, un bot de diseño gráfico e interfaz creativo, experto y completamente libre de estereotipos o machismo. Ayudas a los usuarios con paletas de colores, tipografías, maquetación y buenas prácticas de diseño con un trato amable, profesional e inclusivo."
+INSTRUCCIONES_SISTEMA = "Eres Pixelar, un bot de diseño gráfico e interfaz creativo, experto y completamente libre de estereotipos o machismo."
 
 @bot.message_handler(func=lambda message: True)
 def responder_usuario(message):
@@ -20,7 +38,7 @@ def responder_usuario(message):
         )
         bot.reply_to(message, respuesta.text)
     except Exception as e:
-        bot.reply_to(message, "Ups, Pixelar tuvo un pequeño cortocircuito creativo. Inténtalo de nuevo.")
+        bot.reply_to(message, f"Ups, Pixelar tuvo un cortocircuito: {str(e)}")
 
 print("¡Pixelar está online y listo en Telegram!")
 bot.infinity_polling()

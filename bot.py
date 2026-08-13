@@ -4,7 +4,6 @@ from http.server import HTTPServer, BaseHTTPRequestHandler
 from google import genai
 import telebot
 
-# Servidor web falso para que Render no cierre el Web Service gratuito por falta de puertos
 class SimpleHandler(BaseHTTPRequestHandler):
     def do_GET(self):
         self.send_response(200)
@@ -16,10 +15,8 @@ def run_server():
     server = HTTPServer(("0.0.0.0", port), SimpleHandler)
     server.serve_forever()
 
-# Arrancar el servidor web en segundo plano
 threading.Thread(target=run_server, daemon=True).start()
 
-# Configuración del Bot de Telegram y Gemini
 TELEGRAM_TOKEN = os.environ.get("TELEGRAM_TOKEN")
 GEMINI_API_KEY = os.environ.get("GEMINI_API_KEY")
 
@@ -33,7 +30,7 @@ def responder_usuario(message):
     texto_usuario = message.text
     try:
         respuesta = client.models.generate_content(
-            model='gemini-2.5-flash',
+            model='gemini-1.5-flash',
             contents=f"{INSTRUCCIONES_SISTEMA}\n\nUsuario dice: {texto_usuario}"
         )
         bot.reply_to(message, respuesta.text)
